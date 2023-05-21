@@ -1,0 +1,17 @@
+[package]
+name = "wisard"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+num-traits = "0.2.15"
+rand = "0.8.5"
+rand_xoshiro = "0.6.0"
+
+[dependencies.bitvec]
+version = "1.0.1"
+features = ["serde"]
+
+[dependencies.serde]
+version = "1.0.162"
+features = ["derive"]
