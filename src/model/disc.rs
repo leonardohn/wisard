@@ -1,7 +1,7 @@
 use bitvec::{order::BitOrder, store::BitStore, view::BitView};
 
 use crate::{
-    filter::Filter,
+    filter::{BuildFilter, Filter},
     sample::{Label, Sample},
 };
 
@@ -9,7 +9,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct Discriminator<F>
 where
-    F: Clone + Filter,
+    F: Filter,
 {
     input_size: usize,
     addr_size: usize,
@@ -18,18 +18,30 @@ where
 
 impl<F> Discriminator<F>
 where
-    F: Clone + Filter,
+    F: Filter,
 {
     /// Creates a new [`Discriminator`](./struct.Discriminator.html) instance.
     ///
     /// The `input_size` value determines the total number of input bits.
     /// The `addr_size` value corresponds to the address size of the RAMs.
-    /// The `filter` value must be a cloneable instance of a type which
-    /// implements the [`Filter`](./trait.Filter.html) trait, using the same
+    /// The `builder` value must be an instance of a type which implements
+    /// the [`FilterBuilder`](./trait.FilterBuilder.html) trait, using the same
     /// `addr_size` as provided before and serving as a backend for the RAMs.
-    pub fn from_filter(input_size: usize, addr_size: usize, filter: F) -> Self {
+    pub fn from_filter_builder<B>(
+        input_size: usize,
+        addr_size: usize,
+        builder: &B,
+    ) -> Self
+    where
+        B: BuildFilter<Filter = F>,
+    {
         let num_filters = (input_size + addr_size - 1) / addr_size;
-        let filters = vec![filter; num_filters];
+        let mut filters = Vec::with_capacity(num_filters);
+
+        for _ in 0..num_filters {
+            filters.push(builder.build_filter());
+        }
+
         Self {
             input_size,
             addr_size,
@@ -90,16 +102,16 @@ mod tests {
     use bitvec::prelude::*;
 
     use super::*;
-    use crate::filter::PackedLUTFilter;
+    use crate::filter::PackedLUTFilterBuilder;
 
     fn simple_disc_test(
         input_size: usize,
         addr_size: usize,
         samples: Vec<BitVec>,
     ) -> Vec<usize> {
-        let filter = PackedLUTFilter::new(addr_size, 4, 0);
+        let builder = PackedLUTFilterBuilder::new(addr_size, 4, 0);
         let mut disc =
-            Discriminator::from_filter(input_size, addr_size, filter);
+            Discriminator::from_filter_builder(input_size, addr_size, &builder);
         let samples = samples
             .into_iter()
             .map(|v| Sample::from_raw_parts(v, addr_size, 0usize))

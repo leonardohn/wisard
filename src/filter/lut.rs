@@ -8,7 +8,7 @@ use bitvec::{bitvec, order::Lsb0, vec::BitVec, view::BitView};
 use num_traits::{Saturating, Unsigned};
 
 use crate::{
-    filter::{CountingFilter, Filter},
+    filter::{BuildFilter, CountingFilter, Filter},
     utils::PrimitiveHasher,
 };
 
@@ -103,6 +103,29 @@ impl<T: Counter> CountingFilter for LUTFilter<T> {
     }
 }
 
+/// A builder for [`LUTFilter`](./struct.LUTFilter.html).
+#[derive(Copy, Clone, Debug)]
+pub struct LUTFilterBuilder<T: Counter = u8> {
+    addr_size: usize,
+    threshold: T,
+}
+
+impl<T: Counter> LUTFilterBuilder<T> {
+    pub fn new(addr_size: usize, threshold: T) -> Self {
+        Self {
+            addr_size,
+            threshold,
+        }
+    }
+}
+
+impl<T: Counter> BuildFilter for LUTFilterBuilder<T> {
+    type Filter = LUTFilter<T>;
+    fn build_filter(&self) -> Self::Filter {
+        Self::Filter::new(self.addr_size, self.threshold)
+    }
+}
+
 /// A Filter structure based on dense, bit-packed lookup tables (LUTs).
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct PackedLUTFilter {
@@ -172,6 +195,31 @@ impl CountingFilter for PackedLUTFilter {
     }
 }
 
+/// A builder for [`PackedLUTFilter`](./struct.PackedLUTFilter.html).
+#[derive(Copy, Clone, Debug)]
+pub struct PackedLUTFilterBuilder {
+    addr_size: usize,
+    count_size: usize,
+    threshold: usize,
+}
+
+impl PackedLUTFilterBuilder {
+    pub fn new(addr_size: usize, count_size: usize, threshold: usize) -> Self {
+        Self {
+            addr_size,
+            count_size,
+            threshold,
+        }
+    }
+}
+
+impl BuildFilter for PackedLUTFilterBuilder {
+    type Filter = PackedLUTFilter;
+    fn build_filter(&self) -> Self::Filter {
+        Self::Filter::new(self.addr_size, self.count_size, self.threshold)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -179,7 +227,8 @@ mod tests {
     #[test]
     fn lut_filter_single() {
         let value = 0usize;
-        let mut filter = LUTFilter::new(0, 1u8);
+        let builder = LUTFilterBuilder::new(0, 1u8);
+        let mut filter = builder.build_filter();
         assert_eq!(filter.counter(value), Some(0));
         assert!(!filter.contains(value));
         filter.include(value);
@@ -193,7 +242,8 @@ mod tests {
     #[test]
     fn packed_lut_filter_single() {
         let value = 0usize;
-        let mut filter = PackedLUTFilter::new(0, 2, 1);
+        let builder = PackedLUTFilterBuilder::new(0, 2, 1);
+        let mut filter = builder.build_filter();
         assert_eq!(filter.counter(value), Some(0));
         assert!(!filter.contains(value));
         filter.include(value);

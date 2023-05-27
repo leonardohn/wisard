@@ -4,7 +4,7 @@ use bitvec::{prelude::BitOrder, store::BitStore};
 
 use crate::{
     encode::{SampleEncoder, Shuffle},
-    filter::{Filter, PackedLUTFilter},
+    filter::{BuildFilter, Filter, PackedLUTFilter, PackedLUTFilterBuilder},
     model::Discriminator,
     sample::{Label, Sample},
 };
@@ -45,9 +45,10 @@ impl<L: Label> BinaryWisard<L> {
         labels: HashSet<L>,
         seed: u64,
     ) -> Self {
-        let filter = PackedLUTFilter::new(addr_size, 1, 0);
-        let base =
-            WisardBase::from_filter(input_size, addr_size, labels, filter);
+        let builder = PackedLUTFilterBuilder::new(addr_size, 1, 0);
+        let base = WisardBase::from_filter_builder(
+            input_size, addr_size, labels, &builder,
+        );
         Self { base, seed }
     }
 
@@ -98,25 +99,28 @@ where
     /// The `input_size` value determines the total number of input bits.
     /// The `addr_size` value corresponds to the address size of the RAMs.
     /// The `labels` set must contain all the expected sample labels.
-    /// The `filter` value must be a cloneable instance of a type which
-    /// implements the [`Filter`](./trait.Filter.html) trait, using the same
+    /// The `builder` value must be an instance of a type which implements
+    /// the [`FilterBuilder`](./trait.FilterBuilder.html) trait, using the same
     /// `addr_size` as provided before and serving as a backend for the RAMs.
-    pub fn from_filter(
+    pub fn from_filter_builder<B>(
         input_size: usize,
         addr_size: usize,
         labels: HashSet<L>,
-        filter: F,
-    ) -> Self {
+        builder: &B,
+    ) -> Self
+    where
+        B: BuildFilter<Filter = F>,
+    {
         Self {
             disc: labels
                 .into_iter()
                 .map(|label| {
                     (
                         label,
-                        Discriminator::from_filter(
+                        Discriminator::from_filter_builder(
                             input_size,
                             addr_size,
-                            filter.clone(),
+                            builder,
                         ),
                     )
                 })
