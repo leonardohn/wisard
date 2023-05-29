@@ -1,7 +1,9 @@
 use std::hash::Hash;
 
+mod bloom;
 mod lut;
 
+pub use self::bloom::*;
 pub use lut::*;
 
 /// A trait for basic set membership filters.
