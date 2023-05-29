@@ -84,7 +84,7 @@ impl<L: Label> BinaryWisard<L> {
 pub struct WisardBase<L, F>
 where
     L: Label,
-    F: Clone + Filter,
+    F: Filter,
 {
     disc: HashMap<L, Discriminator<F>>,
 }
@@ -92,7 +92,7 @@ where
 impl<L, F> WisardBase<L, F>
 where
     L: Label,
-    F: Clone + Filter,
+    F: Filter,
 {
     /// Creates a new [`WisardBase`](./struct.WisardBase.html) instance.
     ///
@@ -118,9 +118,7 @@ where
                     (
                         label,
                         Discriminator::from_filter_builder(
-                            input_size,
-                            addr_size,
-                            builder,
+                            input_size, addr_size, builder,
                         ),
                     )
                 })
