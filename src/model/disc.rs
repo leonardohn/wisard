@@ -73,7 +73,7 @@ where
             .for_each(|(i, v)| {
                 let mut addr = 0usize;
                 addr.view_bits_mut::<O>()[..v.len()].clone_from_bitslice(v);
-                self.filters[i].include(addr);
+                self.filters[i].include(&addr);
             })
     }
 
@@ -91,7 +91,7 @@ where
             .map(|(i, v)| {
                 let mut addr = 0usize;
                 addr.view_bits_mut::<O>()[..v.len()].clone_from_bitslice(v);
-                self.filters[i].contains(addr) as usize
+                self.filters[i].contains(&addr) as usize
             })
             .sum()
     }

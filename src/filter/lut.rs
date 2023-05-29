@@ -47,21 +47,21 @@ impl<T> Counter for T where
 
 /// A Filter structure based on dense, integer-aligned lookup tables (LUTs).
 #[derive(Clone, Eq, PartialEq, Hash)]
-pub struct LUTFilter<T: Counter = u8> {
+pub struct LUTFilter<C: Counter = u8> {
     addr_size: usize,
-    threshold: T,
-    lut: Vec<T>,
+    threshold: C,
+    lut: Vec<C>,
 }
 
-impl<T: Counter> LUTFilter<T> {
+impl<C: Counter> LUTFilter<C> {
     /// Creates a new [`LUTFilter`](./struct.LUTFilter.html) instance.
     ///
     /// The `addr_size` parameter represents the address size of the lookup
     /// table, indicating the number of bits in the filter input. The
     /// `threshold` value specifies the minimum number of similar items
     /// required for them to be recognized as members by the filter.
-    pub fn new(addr_size: usize, threshold: T) -> Self {
-        let lut = vec![T::zero(); 1 << addr_size];
+    pub fn new(addr_size: usize, threshold: C) -> Self {
+        let lut = vec![C::zero(); 1 << addr_size];
         Self {
             addr_size,
             threshold,
@@ -70,20 +70,20 @@ impl<T: Counter> LUTFilter<T> {
     }
 }
 
-impl<T: Counter> Filter for LUTFilter<T> {
-    fn include<H: Hash>(&mut self, item: H) -> bool {
+impl<C: Counter> Filter for LUTFilter<C> {
+    fn include<T: Hash>(&mut self, item: &T) -> bool {
         let mut hasher = PrimitiveHasher::default();
         item.hash(&mut hasher);
         let index = hasher.finish() as usize;
         self.lut
             .get_mut(index)
             .map(|count| {
-                *count = count.saturating_add(T::one());
+                *count = count.saturating_add(C::one());
             })
             .is_some()
     }
 
-    fn contains<H: Hash>(&self, item: H) -> bool {
+    fn contains<T: Hash>(&self, item: &T) -> bool {
         let mut hasher = PrimitiveHasher::default();
         item.hash(&mut hasher);
         let index = hasher.finish() as usize;
@@ -94,8 +94,8 @@ impl<T: Counter> Filter for LUTFilter<T> {
     }
 }
 
-impl<T: Counter> CountingFilter for LUTFilter<T> {
-    fn counter<H: Hash>(&self, item: H) -> Option<usize> {
+impl<C: Counter> CountingFilter for LUTFilter<C> {
+    fn counter<T: Hash>(&self, item: &T) -> Option<usize> {
         let mut hasher = PrimitiveHasher::default();
         item.hash(&mut hasher);
         let index = hasher.finish() as usize;
@@ -105,13 +105,13 @@ impl<T: Counter> CountingFilter for LUTFilter<T> {
 
 /// A builder for [`LUTFilter`](./struct.LUTFilter.html).
 #[derive(Copy, Clone, Debug)]
-pub struct LUTFilterBuilder<T: Counter = u8> {
+pub struct LUTFilterBuilder<C: Counter = u8> {
     addr_size: usize,
-    threshold: T,
+    threshold: C,
 }
 
-impl<T: Counter> LUTFilterBuilder<T> {
-    pub fn new(addr_size: usize, threshold: T) -> Self {
+impl<C: Counter> LUTFilterBuilder<C> {
+    pub fn new(addr_size: usize, threshold: C) -> Self {
         Self {
             addr_size,
             threshold,
@@ -119,8 +119,8 @@ impl<T: Counter> LUTFilterBuilder<T> {
     }
 }
 
-impl<T: Counter> BuildFilter for LUTFilterBuilder<T> {
-    type Filter = LUTFilter<T>;
+impl<C: Counter> BuildFilter for LUTFilterBuilder<C> {
+    type Filter = LUTFilter<C>;
     fn build_filter(&self) -> Self::Filter {
         Self::Filter::new(self.addr_size, self.threshold)
     }
@@ -155,7 +155,7 @@ impl PackedLUTFilter {
 }
 
 impl Filter for PackedLUTFilter {
-    fn include<H: Hash>(&mut self, item: H) -> bool {
+    fn include<T: Hash>(&mut self, item: &T) -> bool {
         let mut hasher = PrimitiveHasher::default();
         item.hash(&mut hasher);
         let max_value = (1 << self.count_size) - 1;
@@ -174,7 +174,7 @@ impl Filter for PackedLUTFilter {
             .is_some()
     }
 
-    fn contains<H: Hash>(&self, item: H) -> bool {
+    fn contains<T: Hash>(&self, item: &T) -> bool {
         self.counter(item)
             .map(|count| count > self.threshold)
             .unwrap_or(false)
@@ -182,7 +182,7 @@ impl Filter for PackedLUTFilter {
 }
 
 impl CountingFilter for PackedLUTFilter {
-    fn counter<H: Hash>(&self, item: H) -> Option<usize> {
+    fn counter<T: Hash>(&self, item: &T) -> Option<usize> {
         let mut hasher = PrimitiveHasher::default();
         item.hash(&mut hasher);
         let index = self.count_size * hasher.finish() as usize;
@@ -229,14 +229,14 @@ mod tests {
         let value = 0usize;
         let builder = LUTFilterBuilder::new(0, 1u8);
         let mut filter = builder.build_filter();
-        assert_eq!(filter.counter(value), Some(0));
-        assert!(!filter.contains(value));
-        filter.include(value);
-        assert_eq!(filter.counter(value), Some(1));
-        assert!(!filter.contains(value));
-        filter.include(value);
-        assert_eq!(filter.counter(value), Some(2));
-        assert!(filter.contains(value));
+        assert_eq!(filter.counter(&value), Some(0));
+        assert!(!filter.contains(&value));
+        filter.include(&value);
+        assert_eq!(filter.counter(&value), Some(1));
+        assert!(!filter.contains(&value));
+        filter.include(&value);
+        assert_eq!(filter.counter(&value), Some(2));
+        assert!(filter.contains(&value));
     }
 
     #[test]
@@ -244,13 +244,13 @@ mod tests {
         let value = 0usize;
         let builder = PackedLUTFilterBuilder::new(0, 2, 1);
         let mut filter = builder.build_filter();
-        assert_eq!(filter.counter(value), Some(0));
-        assert!(!filter.contains(value));
-        filter.include(value);
-        assert_eq!(filter.counter(value), Some(1));
-        assert!(!filter.contains(value));
-        filter.include(value);
-        assert_eq!(filter.counter(value), Some(2));
-        assert!(filter.contains(value));
+        assert_eq!(filter.counter(&value), Some(0));
+        assert!(!filter.contains(&value));
+        filter.include(&value);
+        assert_eq!(filter.counter(&value), Some(1));
+        assert!(!filter.contains(&value));
+        filter.include(&value);
+        assert_eq!(filter.counter(&value), Some(2));
+        assert!(filter.contains(&value));
     }
 }
