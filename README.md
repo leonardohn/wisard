@@ -95,7 +95,7 @@ fn main() {
 ```
 
 For more detailed examples and usage instructions, please consult the
-[API documentation](https://docs.rs/wisard).
+[documentation](https://docs.rs/wisard).
 
 ## Contribution
 
