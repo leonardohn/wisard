@@ -1,7 +1,20 @@
 [package]
 name = "wisard"
 version = "0.0.1"
+authors = ["Leonardo Neumann <leonardo@neumann.dev.br>"]
+description = "WiSARD nets implementation in Rust"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/leonardohn/wisard"
+documentation = "https://docs.rs/wisard"
+readme = "README.md"
+categories = ["science"]
+keywords = [
+    "data-science",
+    "machine-learning",
+    "neural-networks",
+    "weightless",
+]
 
 [dependencies]
 bloom = "0.3.2"
@@ -16,3 +29,13 @@ features = ["serde"]
 [dependencies.serde]
 version = "1.0.162"
 features = ["derive"]
+
+[profile.release]
+lto = true
+
+[profile.release-no-lto]
+inherits = "release"
+lto = false
+
+[profile.bench]
+debug = true
