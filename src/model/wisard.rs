@@ -14,7 +14,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct BinaryWisard<L: Label> {
     base: WisardBase<L, PackedLUTFilter>,
-    seed: u64,
+    seed: [u8; 8],
 }
 
 impl<L: Label> BinaryWisard<L> {
@@ -43,7 +43,7 @@ impl<L: Label> BinaryWisard<L> {
         input_size: usize,
         addr_size: usize,
         labels: HashSet<L>,
-        seed: u64,
+        seed: [u8; 8],
     ) -> Self {
         let builder = PackedLUTFilterBuilder::new(addr_size, 1, 0);
         let base = WisardBase::from_filter_builder(
@@ -53,7 +53,7 @@ impl<L: Label> BinaryWisard<L> {
     }
 
     /// Returns the internal random seed for the model.
-    pub fn seed(&self) -> u64 {
+    pub fn seed(&self) -> [u8; 8] {
         self.seed
     }
 
