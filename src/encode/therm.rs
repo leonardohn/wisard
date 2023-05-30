@@ -9,18 +9,20 @@ use crate::sample::{Label, Sample};
 /// A logarithmic thermometer encoder.
 #[derive(Debug)]
 pub struct LogThermometer {
-    size: usize,
+    /// The resolution (output size), in bits.
+    resolution: u8,
 }
 
 impl LogThermometer {
     /// Creates a new [`LogThermometer`](./struct.LogThermometer.html) instance
-    /// with an output of `size` bits. The `size` must be a power of two.
-    pub fn with_size(size: usize) -> Self {
-        if !size.is_power_of_two() {
-            panic!("Sample size must be a power of two");
-        } else {
-            Self { size }
-        }
+    /// with a resolution (output size) of `resolution` bits. The `resolution`
+    /// must be a power of two.
+    pub fn with_resolution(resolution: u8) -> Self {
+        assert!(
+            resolution.is_power_of_two(),
+            "LogThermometer only supports resolutions that are powers of two",
+        );
+        Self { resolution }
     }
 }
 
@@ -44,7 +46,8 @@ where
             panic!("Sample size must be a power of two");
         }
 
-        let out_size = (sample.len() / sample.size()) * self.size;
+        let resolution = self.resolution as usize;
+        let out_size = (sample.len() / sample.size()) * resolution;
         let mut bits = BitVec::<S, O>::with_capacity(out_size);
 
         for value in sample.iter_values() {
@@ -53,33 +56,34 @@ where
                 .clone_from_bitslice(value);
             orig_value = (orig_value + 1).next_power_of_two().ilog2() as usize;
 
-            if sample.size() < self.size {
-                orig_value *= self.size / sample.size();
+            if sample.size() < resolution {
+                orig_value *= resolution / sample.size();
             } else {
-                orig_value /= sample.size() / self.size;
+                orig_value /= sample.size() / resolution;
             };
 
             let therm_value = (1usize << orig_value) - 1;
-            let therm_value = &therm_value.view_bits::<O>()[..self.size];
+            let therm_value = &therm_value.view_bits::<O>()[..resolution];
             bits.extend_from_bitslice(therm_value);
         }
 
         sample.set_raw_bits(bits);
-        sample.set_size(self.size);
+        sample.set_size(resolution);
     }
 }
 
 /// A linear thermometer encoder.
 #[derive(Debug)]
 pub struct LinearThermometer {
-    size: usize,
+    /// The resolution (output size), in bits.
+    resolution: u8,
 }
 
 impl LinearThermometer {
     /// Creates a new [`LinearThermometer`](./struct.LinearThermometer.html)
-    /// instance with an output of `size` bits.
-    pub fn with_size(size: usize) -> Self {
-        Self { size }
+    /// instance with a resolution (output size) of `resolution` bits.
+    pub fn with_resolution(resolution: u8) -> Self {
+        Self { resolution }
     }
 }
 
@@ -100,23 +104,24 @@ where
             );
         }
 
-        let out_size = (sample.len() / sample.size()) * self.size;
+        let resolution = self.resolution as usize;
+        let out_size = (sample.len() / sample.size()) * resolution;
         let mut bits = BitVec::<S, O>::with_capacity(out_size);
 
         for value in sample.iter_values() {
             let mut bit_value = 0usize;
             bit_value.view_bits_mut::<O>()[..value.len()]
                 .clone_from_bitslice(value);
-            let quant_value = ((self.size + 1) * bit_value
+            let quant_value = ((resolution + 1) * bit_value
                 + (value.len() >> 1))
                 >> value.len();
             let therm_value = (1usize << quant_value) - 1;
-            let therm_value = &therm_value.view_bits::<O>()[..self.size];
+            let therm_value = &therm_value.view_bits::<O>()[..resolution];
             bits.extend_from_bitslice(therm_value);
         }
 
         sample.set_raw_bits(bits);
-        sample.set_size(self.size);
+        sample.set_size(resolution);
     }
 }
 
@@ -164,7 +169,7 @@ mod tests {
             1,
             0usize,
         );
-        LogThermometer::with_size(1).encode_inplace(&mut sample);
+        LogThermometer::with_resolution(1).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 
@@ -190,7 +195,7 @@ mod tests {
             2,
             0usize,
         );
-        LogThermometer::with_size(2).encode_inplace(&mut sample);
+        LogThermometer::with_resolution(2).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 
@@ -216,7 +221,7 @@ mod tests {
             4,
             0usize,
         );
-        LogThermometer::with_size(4).encode_inplace(&mut sample);
+        LogThermometer::with_resolution(4).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 
@@ -242,7 +247,7 @@ mod tests {
             1,
             0usize,
         );
-        LinearThermometer::with_size(1).encode_inplace(&mut sample);
+        LinearThermometer::with_resolution(1).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 
@@ -268,7 +273,7 @@ mod tests {
             2,
             0usize,
         );
-        LinearThermometer::with_size(2).encode_inplace(&mut sample);
+        LinearThermometer::with_resolution(2).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 
@@ -294,7 +299,7 @@ mod tests {
             3,
             0usize,
         );
-        LinearThermometer::with_size(3).encode_inplace(&mut sample);
+        LinearThermometer::with_resolution(3).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 
@@ -320,7 +325,7 @@ mod tests {
             4,
             0usize,
         );
-        LinearThermometer::with_size(4).encode_inplace(&mut sample);
+        LinearThermometer::with_resolution(4).encode_inplace(&mut sample);
         assert_eq!(sample, sample_therm);
     }
 }
