@@ -127,25 +127,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bitvec::{bitvec, order::Lsb0};
+    use bitvec::prelude::*;
 
     use super::*;
-    use crate::encode::Permute;
-
-    #[test]
-    fn shuffle_fixed_seed() {
-        let sample_1 =
-            Sample::from_raw_parts(bitvec![0, 0, 0, 0, 1, 1, 1, 1], 1, 0usize);
-        let sample_2 =
-            Sample::from_raw_parts(bitvec![0, 1, 0, 1, 0, 1, 0, 1], 1, 0usize);
-        let sample_1_shuf =
-            Sample::from_raw_parts(bitvec![1, 0, 0, 1, 0, 0, 1, 1], 1, 0usize);
-        let sample_2_shuf =
-            Sample::from_raw_parts(bitvec![0, 1, 0, 1, 1, 0, 0, 1], 1, 0usize);
-        let shuffle = <Permute>::with_seed(7);
-        assert_eq!(shuffle.encode(sample_1), sample_1_shuf);
-        assert_eq!(shuffle.encode(sample_2), sample_2_shuf);
-    }
 
     #[test]
     fn log_therm_in2_out1() {
