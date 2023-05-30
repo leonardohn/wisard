@@ -2,14 +2,14 @@ use std::marker::PhantomData;
 
 use bitvec::{order::BitOrder, store::BitStore};
 use rand::{RngCore, SeedableRng};
-use rand_xoshiro::Xoshiro256PlusPlus;
+use rand_xoshiro::SplitMix64;
 
 use crate::encode::SampleEncoder;
 use crate::sample::{Label, Sample};
 
 /// An encoder that permutes the sample bits according to a given random seed.
 #[derive(Clone, Debug)]
-pub struct Permute<R = Xoshiro256PlusPlus>
+pub struct Permute<R = SplitMix64>
 where
     R: RngCore + SeedableRng,
 {
@@ -73,9 +73,9 @@ mod tests {
         let sample_2 =
             Sample::from_raw_parts(bitvec![0, 1, 0, 1, 0, 1, 0, 1], 1, 0usize);
         let sample_1_perm =
-            Sample::from_raw_parts(bitvec![1, 0, 0, 1, 0, 0, 1, 1], 1, 0usize);
+            Sample::from_raw_parts(bitvec![0, 1, 1, 0, 1, 0, 0, 1], 1, 0usize);
         let sample_2_perm =
-            Sample::from_raw_parts(bitvec![0, 1, 0, 1, 1, 0, 0, 1], 1, 0usize);
+            Sample::from_raw_parts(bitvec![1, 0, 1, 0, 0, 0, 1, 1], 1, 0usize);
         let permute = <Permute>::with_seed(7);
         assert_eq!(permute.encode(sample_1), sample_1_perm);
         assert_eq!(permute.encode(sample_2), sample_2_perm);
