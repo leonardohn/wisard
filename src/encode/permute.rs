@@ -1,16 +1,16 @@
 use bitvec::{order::BitOrder, store::BitStore};
 use rand::{Rng, RngCore, SeedableRng};
-use rand_xoshiro::SplitMix64;
+use rand_xoshiro::Xoshiro256PlusPlus;
 
 use crate::encode::SampleEncoder;
 use crate::sample::{Label, Sample};
 
 /// An encoder that permutes the sample bits according to a given random seed.
-#[derive(Copy, Clone)]
-pub struct Permute<R = SplitMix64>
+#[derive(Clone)]
+pub struct Permute<R = Xoshiro256PlusPlus>
 where
     R: RngCore + SeedableRng,
-    <R as SeedableRng>::Seed: Copy,
+    <R as SeedableRng>::Seed: Clone,
 {
     seed: <R as SeedableRng>::Seed,
 }
@@ -18,7 +18,7 @@ where
 impl<R> Permute<R>
 where
     R: RngCore + SeedableRng,
-    <R as SeedableRng>::Seed: Copy,
+    <R as SeedableRng>::Seed: Clone,
 {
     /// Creates a new [`Permute`](./structs.Permute.html) encoder instance
     /// using `rand::random()` as the permutation seed.
@@ -41,13 +41,13 @@ where
 impl<R> Default for Permute<R>
 where
     R: RngCore + SeedableRng,
-    <R as SeedableRng>::Seed: Copy,
+    <R as SeedableRng>::Seed: Clone,
 {
     fn default() -> Self {
         let mut seed = <R as SeedableRng>::Seed::default();
         let mut rng = rand::thread_rng();
         rng.fill_bytes(seed.as_mut());
-        Self::with_seed(seed)
+        Self::with_seed(seed.clone())
     }
 }
 
@@ -57,10 +57,10 @@ where
     O: BitOrder,
     R: RngCore + SeedableRng,
     S: BitStore,
-    <R as SeedableRng>::Seed: Copy,
+    <R as SeedableRng>::Seed: Clone,
 {
     fn encode_inplace(&self, sample: &mut Sample<L, S, O>) {
-        let mut rng = R::from_seed(self.seed);
+        let mut rng = R::from_seed(self.seed.clone());
         let bits = sample.raw_bits_mut();
         let m = bits.len() - 1;
         for i in 0..m {
@@ -82,10 +82,10 @@ mod tests {
         let sample_2 =
             Sample::from_raw_parts(bitvec![0, 1, 0, 1, 0, 1, 0, 1], 1, 0usize);
         let sample_1_perm =
-            Sample::from_raw_parts(bitvec![1, 0, 0, 0, 0, 1, 1, 1], 1, 0usize);
+            Sample::from_raw_parts(bitvec![1, 1, 1, 0, 0, 0, 1, 0], 1, 0usize);
         let sample_2_perm =
-            Sample::from_raw_parts(bitvec![0, 0, 1, 1, 0, 1, 0, 1], 1, 0usize);
-        let seed = (0xABAD5EED_u64).to_le_bytes();
+            Sample::from_raw_parts(bitvec![0, 0, 1, 1, 0, 0, 1, 1], 1, 0usize);
+        let seed = 0xBAD_5EED_u32.to_le_bytes().repeat(8).try_into().unwrap();
         let permute = <Permute>::with_seed(seed);
         assert_eq!(permute.encode(sample_1), sample_1_perm);
         assert_eq!(permute.encode(sample_2), sample_2_perm);

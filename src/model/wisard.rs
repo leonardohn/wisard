@@ -14,12 +14,12 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct BinaryWisard<L: Label> {
     base: WisardBase<L, PackedLUTFilter>,
-    seed: [u8; 8],
+    seed: [u8; 32],
 }
 
 impl<L: Label> BinaryWisard<L> {
     /// Creates a new [`BinaryWisard`](./struct.BinaryWisard.html) instance
-    /// using `rand::random()` as the random seed for the permutations.
+    /// using `rand::random()` as the permutation seed.
     ///
     /// The `input_size` value determines the total number of input bits.
     /// The `addr_size` value corresponds to the address size of the RAMs.
@@ -33,17 +33,17 @@ impl<L: Label> BinaryWisard<L> {
     }
 
     /// Creates a new [`BinaryWisard`](./struct.BinaryWisard.html) instance
-    /// using a given random seed for the permutations.
+    /// using a given permutation seed.
     ///
     /// The `input_size` value determines the total number of input bits.
     /// The `addr_size` value corresponds to the address size of the RAMs.
     /// The `labels` set must contain all the expected sample labels.
-    /// The `seed` value determines the random seed.
+    /// The `seed` value determines the permutation seed.
     pub fn with_seed(
         input_size: usize,
         addr_size: usize,
         labels: HashSet<L>,
-        seed: [u8; 8],
+        seed: [u8; 32],
     ) -> Self {
         let builder = PackedLUTFilterBuilder::new(addr_size, 1, 0);
         let base = WisardBase::from_filter_builder(
@@ -53,7 +53,7 @@ impl<L: Label> BinaryWisard<L> {
     }
 
     /// Returns the internal random seed for the model.
-    pub fn seed(&self) -> [u8; 8] {
+    pub fn seed(&self) -> [u8; 32] {
         self.seed
     }
 
