@@ -2,10 +2,10 @@ use bitvec::{order::BitOrder, store::BitStore};
 
 use crate::sample::{Label, Sample};
 
-mod shuffle;
+mod permute;
 mod therm;
 
-pub use shuffle::*;
+pub use permute::*;
 pub use therm::*;
 
 /// A trait for sample encoders, i.e. transformations over the sample bits.

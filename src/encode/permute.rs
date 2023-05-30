@@ -7,9 +7,9 @@ use rand_xoshiro::Xoshiro256PlusPlus;
 use crate::encode::SampleEncoder;
 use crate::sample::{Label, Sample};
 
-/// An encoder that shuffles the sample bits according to a given random seed.
+/// An encoder that permutes the sample bits according to a given random seed.
 #[derive(Clone, Debug)]
-pub struct Shuffle<R = Xoshiro256PlusPlus>
+pub struct Permute<R = Xoshiro256PlusPlus>
 where
     R: RngCore + SeedableRng,
 {
@@ -17,15 +17,15 @@ where
     _phantom: PhantomData<R>,
 }
 
-impl<R: RngCore + SeedableRng> Shuffle<R> {
-    /// Creates a new [`Shuffle`](./structs.Shuffle.html) instance using
-    /// `rand::random()` as the random seed.
+impl<R: RngCore + SeedableRng> Permute<R> {
+    /// Creates a new [`Permute`](./structs.Permute.html) encoder instance 
+    /// using `rand::random()` as the random seed.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates a new [`Shuffle`](./structs.Shuffle.html) instance using
-    /// a given random seed.
+    /// Creates a new [`Permute`](./structs.Permute.html) encoder instance 
+    /// using a given `seed` as the random seed.
     pub fn with_seed(seed: u64) -> Self {
         let _phantom = PhantomData;
         Self { seed, _phantom }
@@ -37,13 +37,13 @@ impl<R: RngCore + SeedableRng> Shuffle<R> {
     }
 }
 
-impl<R: RngCore + SeedableRng> Default for Shuffle<R> {
+impl<R: RngCore + SeedableRng> Default for Permute<R> {
     fn default() -> Self {
         Self::with_seed(rand::random())
     }
 }
 
-impl<L, S, O, R> SampleEncoder<L, S, O> for Shuffle<R>
+impl<L, S, O, R> SampleEncoder<L, S, O> for Permute<R>
 where
     L: Label,
     O: BitOrder,
@@ -62,22 +62,22 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bitvec::{bitvec, order::Lsb0};
+    use bitvec::prelude::*;
 
     use super::*;
 
     #[test]
-    fn shuffle_fixed_seed() {
+    fn permute_fixed_seed() {
         let sample_1 =
             Sample::from_raw_parts(bitvec![0, 0, 0, 0, 1, 1, 1, 1], 1, 0usize);
         let sample_2 =
             Sample::from_raw_parts(bitvec![0, 1, 0, 1, 0, 1, 0, 1], 1, 0usize);
-        let sample_1_shuf =
+        let sample_1_perm =
             Sample::from_raw_parts(bitvec![1, 0, 0, 1, 0, 0, 1, 1], 1, 0usize);
-        let sample_2_shuf =
+        let sample_2_perm =
             Sample::from_raw_parts(bitvec![0, 1, 0, 1, 1, 0, 0, 1], 1, 0usize);
-        let shuffle = <Shuffle>::with_seed(7);
-        assert_eq!(shuffle.encode(sample_1), sample_1_shuf);
-        assert_eq!(shuffle.encode(sample_2), sample_2_shuf);
+        let permute = <Permute>::with_seed(7);
+        assert_eq!(permute.encode(sample_1), sample_1_perm);
+        assert_eq!(permute.encode(sample_2), sample_2_perm);
     }
 }

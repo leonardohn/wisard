@@ -130,7 +130,7 @@ mod tests {
     use bitvec::{bitvec, order::Lsb0};
 
     use super::*;
-    use crate::encode::Shuffle;
+    use crate::encode::Permute;
 
     #[test]
     fn shuffle_fixed_seed() {
@@ -142,7 +142,7 @@ mod tests {
             Sample::from_raw_parts(bitvec![1, 0, 0, 1, 0, 0, 1, 1], 1, 0usize);
         let sample_2_shuf =
             Sample::from_raw_parts(bitvec![0, 1, 0, 1, 1, 0, 0, 1], 1, 0usize);
-        let shuffle = <Shuffle>::with_seed(7);
+        let shuffle = <Permute>::with_seed(7);
         assert_eq!(shuffle.encode(sample_1), sample_1_shuf);
         assert_eq!(shuffle.encode(sample_2), sample_2_shuf);
     }

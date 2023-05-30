@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use bitvec::{prelude::BitOrder, store::BitStore};
 
 use crate::{
-    encode::{SampleEncoder, Shuffle},
+    encode::{SampleEncoder, Permute},
     filter::{BuildFilter, Filter, PackedLUTFilter, PackedLUTFilterBuilder},
     model::Discriminator,
     sample::{Label, Sample},
@@ -59,21 +59,21 @@ impl<L: Label> BinaryWisard<L> {
 
     /// Fits (trains) the model with a given input sample.
     pub fn fit(&mut self, sample: &Sample<L>) {
-        let encoder = <Shuffle>::with_seed(self.seed);
+        let encoder = <Permute>::with_seed(self.seed);
         let sample = encoder.encode(sample.clone());
         self.base.fit(&sample)
     }
 
     /// Returns the model scores for a given input sample.
     pub fn scores(&self, sample: &Sample<L>) -> Vec<(usize, L)> {
-        let encoder = <Shuffle>::with_seed(self.seed);
+        let encoder = <Permute>::with_seed(self.seed);
         let sample = encoder.encode(sample.clone());
         self.base.scores(&sample)
     }
 
     /// Returns the model prediction for a given input sample.
     pub fn predict(&self, sample: &Sample<L>) -> L {
-        let encoder = <Shuffle>::with_seed(self.seed);
+        let encoder = <Permute>::with_seed(self.seed);
         let sample = encoder.encode(sample.clone());
         self.base.predict(&sample)
     }
