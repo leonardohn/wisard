@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use bitvec::{prelude::BitOrder, store::BitStore};
 
 use crate::{
-    encode::{SampleEncoder, Permute},
+    encode::{Permute, SampleEncoder},
     filter::{BuildFilter, Filter, PackedLUTFilter, PackedLUTFilterBuilder},
     model::Discriminator,
     sample::{Label, Sample},
