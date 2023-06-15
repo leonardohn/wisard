@@ -9,7 +9,7 @@ use num_traits::{Saturating, Unsigned};
 
 use crate::{
     filter::{BuildFilter, CountingFilter, Filter},
-    utils::PrimitiveHasher,
+    util::RawIntHasher,
 };
 
 /// A trait for primitive unsigned integers to be used as saturating counters.
@@ -72,7 +72,7 @@ impl<C: Counter> LUTFilter<C> {
 
 impl<C: Counter> Filter for LUTFilter<C> {
     fn include<T: Hash>(&mut self, item: &T) -> bool {
-        let mut hasher = PrimitiveHasher::default();
+        let mut hasher = RawIntHasher::default();
         item.hash(&mut hasher);
         let index = hasher.finish() as usize;
         self.lut
@@ -84,7 +84,7 @@ impl<C: Counter> Filter for LUTFilter<C> {
     }
 
     fn contains<T: Hash>(&self, item: &T) -> bool {
-        let mut hasher = PrimitiveHasher::default();
+        let mut hasher = RawIntHasher::default();
         item.hash(&mut hasher);
         let index = hasher.finish() as usize;
         self.lut
@@ -96,7 +96,7 @@ impl<C: Counter> Filter for LUTFilter<C> {
 
 impl<C: Counter> CountingFilter for LUTFilter<C> {
     fn counter<T: Hash>(&self, item: &T) -> Option<usize> {
-        let mut hasher = PrimitiveHasher::default();
+        let mut hasher = RawIntHasher::default();
         item.hash(&mut hasher);
         let index = hasher.finish() as usize;
         self.lut.get(index).map(|v| (*v).into())
@@ -156,7 +156,7 @@ impl PackedLUTFilter {
 
 impl Filter for PackedLUTFilter {
     fn include<T: Hash>(&mut self, item: &T) -> bool {
-        let mut hasher = PrimitiveHasher::default();
+        let mut hasher = RawIntHasher::default();
         item.hash(&mut hasher);
         let max_value = (1 << self.count_size) - 1;
         let index = self.count_size * hasher.finish() as usize;
@@ -183,7 +183,7 @@ impl Filter for PackedLUTFilter {
 
 impl CountingFilter for PackedLUTFilter {
     fn counter<T: Hash>(&self, item: &T) -> Option<usize> {
-        let mut hasher = PrimitiveHasher::default();
+        let mut hasher = RawIntHasher::default();
         item.hash(&mut hasher);
         let index = self.count_size * hasher.finish() as usize;
         self.lut.get(index..index + self.count_size).map(|count| {
