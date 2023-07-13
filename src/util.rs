@@ -1,4 +1,40 @@
-use std::hash::Hasher;
+use std::fmt::Debug;
+use std::hash::{Hash, Hasher};
+
+use num_traits::{Saturating, Unsigned};
+
+/// A trait for primitive unsigned integers to be used as saturating counters.
+pub trait Counter:
+    Copy
+    + Clone
+    + Debug
+    + Default
+    + Eq
+    + PartialEq
+    + Ord
+    + PartialOrd
+    + Hash
+    + Unsigned
+    + Saturating
+    + Into<usize>
+{
+}
+
+impl<T> Counter for T where
+    T: Copy
+        + Clone
+        + Debug
+        + Default
+        + Eq
+        + PartialEq
+        + Ord
+        + PartialOrd
+        + Hash
+        + Unsigned
+        + Saturating
+        + Into<usize>
+{
+}
 
 /// A hasher that only accepts integers and use their raw values as indices.
 #[derive(Copy, Clone, Debug, Default)]

@@ -5,45 +5,10 @@ use std::{
 
 use bitvec::{bitvec, order::Lsb0, vec::BitVec, view::BitView};
 
-use num_traits::{Saturating, Unsigned};
-
 use crate::{
     filter::{BuildFilter, CountingFilter, Filter},
-    util::RawIntHasher,
+    util::{Counter, RawIntHasher},
 };
-
-/// A trait for primitive unsigned integers to be used as saturating counters.
-pub trait Counter:
-    Copy
-    + Clone
-    + Debug
-    + Default
-    + Eq
-    + PartialEq
-    + Ord
-    + PartialOrd
-    + Hash
-    + Unsigned
-    + Saturating
-    + Into<usize>
-{
-}
-
-impl<T> Counter for T where
-    T: Copy
-        + Clone
-        + Debug
-        + Default
-        + Eq
-        + PartialEq
-        + Ord
-        + PartialOrd
-        + Hash
-        + Unsigned
-        + Saturating
-        + Into<usize>
-{
-}
 
 /// A Filter structure based on dense, integer-aligned lookup tables (LUTs).
 #[derive(Clone, Eq, PartialEq, Hash)]
