@@ -33,9 +33,5 @@ features = ["derive"]
 [profile.release]
 lto = true
 
-[profile.release-no-lto]
-inherits = "release"
-lto = false
-
 [profile.bench]
 debug = true
