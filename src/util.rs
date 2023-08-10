@@ -52,9 +52,10 @@ impl Hasher for RawIntHasher {
     }
 
     fn write_u64(&mut self, i: u64) {
-        self.0.map_or_else(|| self.0 = Some(i), |_| {
-            panic!("RawIntHasher can only hash once")
-        })
+        self.0.map_or_else(
+            || self.0 = Some(i),
+            |_| panic!("RawIntHasher can only hash once"),
+        )
     }
 
     fn write_u32(&mut self, i: u32) {
