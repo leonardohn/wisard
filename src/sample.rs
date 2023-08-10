@@ -9,9 +9,9 @@ use bitvec::{
 };
 
 /// A trait for the sample labels.
-pub trait Label: Clone + Debug + Eq + PartialEq + Hash {}
+pub trait Label: Copy + Clone + Debug + Eq + PartialEq + Hash {}
 
-impl<T: Clone + Debug + Eq + PartialEq + Hash> Label for T {}
+impl<T: Copy + Clone + Debug + Eq + PartialEq + Hash> Label for T {}
 
 /// Represents a labeled sample.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
