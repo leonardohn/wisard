@@ -1,3 +1,4 @@
+pub mod dataset;
 pub mod encode;
 pub mod filter;
 pub mod model;
