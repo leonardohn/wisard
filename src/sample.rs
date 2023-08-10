@@ -1,7 +1,7 @@
 use std::{fmt::Debug, hash::Hash};
 
 use bitvec::{
-    order::{BitOrder, Lsb0},
+    order::{BitOrder, LocalBits},
     ptr::{BitRef, Const},
     slice::BitSlice,
     store::BitStore,
@@ -15,7 +15,7 @@ impl<T: Clone + Debug + Eq + PartialEq + Hash> Label for T {}
 
 /// Represents a labeled sample.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Sample<L, S = usize, O = Lsb0>
+pub struct Sample<L, S = usize, O = LocalBits>
 where
     L: Label,
     O: BitOrder,
