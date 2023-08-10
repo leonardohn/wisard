@@ -35,19 +35,19 @@ where
     fn encode_inplace(&self, sample: &mut Sample<L, S, O>) {
         let max_bits = std::mem::size_of::<usize>() << 3;
 
-        if sample.size() > max_bits {
+        if sample.vsize() > max_bits {
             panic!(
                 "LogThermometer can only encode values up to {} bits",
                 max_bits,
             );
         }
 
-        if !sample.size().is_power_of_two() {
+        if !sample.vsize().is_power_of_two() {
             panic!("Sample size must be a power of two");
         }
 
         let resolution = self.resolution as usize;
-        let out_size = (sample.len() / sample.size()) * resolution;
+        let out_size = (sample.len() / sample.vsize()) * resolution;
         let mut bits = BitVec::<S, O>::with_capacity(out_size);
 
         for value in sample.iter_values() {
@@ -56,10 +56,10 @@ where
                 .clone_from_bitslice(value);
             orig_value = (orig_value + 1).next_power_of_two().ilog2() as usize;
 
-            if sample.size() < resolution {
-                orig_value *= resolution / sample.size();
+            if sample.vsize() < resolution {
+                orig_value *= resolution / sample.vsize();
             } else {
-                orig_value /= sample.size() / resolution;
+                orig_value /= sample.vsize() / resolution;
             };
 
             let therm_value = (1usize << orig_value) - 1;
@@ -68,7 +68,7 @@ where
         }
 
         sample.set_raw_bits(bits);
-        sample.set_size(resolution);
+        sample.set_vsize(resolution);
     }
 }
 
@@ -97,7 +97,7 @@ where
     fn encode_inplace(&self, sample: &mut Sample<L, S, O>) {
         let max_bits = std::mem::size_of::<usize>() << 3;
 
-        if sample.size() > max_bits {
+        if sample.vsize() > max_bits {
             panic!(
                 "LinearThermometer can only encode values up to {} bits",
                 max_bits,
@@ -105,7 +105,7 @@ where
         }
 
         let resolution = self.resolution as usize;
-        let out_size = (sample.len() / sample.size()) * resolution;
+        let out_size = (sample.len() / sample.vsize()) * resolution;
         let mut bits = BitVec::<S, O>::with_capacity(out_size);
 
         for value in sample.iter_values() {
@@ -121,7 +121,7 @@ where
         }
 
         sample.set_raw_bits(bits);
-        sample.set_size(resolution);
+        sample.set_vsize(resolution);
     }
 }
 

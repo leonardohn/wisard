@@ -22,7 +22,7 @@ where
     S: BitStore,
 {
     bits: BitVec<S, O>,
-    size: usize,
+    vsize: usize,
     label: L,
 }
 
@@ -33,14 +33,26 @@ where
     S: BitStore,
 {
     /// Creates a [`Sample`](./struct.Sample.html) instance from its raw parts.
-    pub fn from_raw_parts(bits: BitVec<S, O>, size: usize, label: L) -> Self {
-        Self { bits, size, label }
+    pub fn from_raw_parts(bits: BitVec<S, O>, vsize: usize, label: L) -> Self {
+        assert!(
+            bits.len() >= vsize,
+            "There are not enough bits for `vsize` (bits: {}, vsize: {})",
+            bits.len(),
+            vsize,
+        );
+        assert!(
+            bits.len() % vsize == 0,
+            "The bits are not divisible by `vsize` (bits: {}, vsize: {})",
+            bits.len(),
+            vsize,
+        );
+        Self { bits, vsize, label }
     }
 
     /// Breaks a [`Sample`](./struct.Sample.html) instance into its raw parts.
     pub fn into_raw_parts(self) -> (BitVec<S, O>, usize, L) {
-        let Self { bits, size, label } = self;
-        (bits, size, label)
+        let Self { bits, vsize, label } = self;
+        (bits, vsize, label)
     }
 
     /// Returns an iterator over the individual sample bits
@@ -50,7 +62,7 @@ where
 
     /// Returns an iterator over the sample bit chunks.
     pub fn iter_values(&self) -> impl Iterator<Item = &BitSlice<S, O>> {
-        self.bits.chunks(self.size)
+        self.bits.chunks(self.vsize)
     }
 
     /// Returns the number of bits of a sample.
@@ -78,26 +90,26 @@ where
         self.bits = bits;
     }
 
-    /// Returns the data size (number of bits for each element in the sample).
-    pub fn size(&self) -> usize {
-        self.size
+    /// Returns the value size (number of bits for each element in the sample).
+    pub fn vsize(&self) -> usize {
+        self.vsize
     }
 
-    /// Updates the data size (number of bits for each element in the sample).
-    pub fn set_size(&mut self, size: usize) {
+    /// Updates the value size (number of bits for each element in the sample).
+    pub fn set_vsize(&mut self, vsize: usize) {
         assert!(
-            self.len() >= size,
-            "There are not enough bits for `size` (bits: {}, size: {})",
+            self.len() >= vsize,
+            "There are not enough bits for `vsize` (bits: {}, vsize: {})",
             self.len(),
-            size,
+            vsize,
         );
         assert!(
-            self.len() % size == 0,
-            "The bits are not divisible by `size` (bits: {}, size: {})",
+            self.len() % vsize == 0,
+            "The bits are not divisible by `vsize` (bits: {}, vsize: {})",
             self.len(),
-            size,
+            vsize,
         );
-        self.size = size;
+        self.vsize = vsize;
     }
 
     /// Returns the associated label.
@@ -120,13 +132,13 @@ mod tests {
     #[test]
     fn from_into_parts() {
         let bits = bitvec![0, 1];
-        let size = 3usize;
+        let vsize = 2usize;
         let label = 0usize;
-        let sample = Sample::from_raw_parts(bits, size, label);
+        let sample = Sample::from_raw_parts(bits, vsize, label);
         let bits = bitvec![0, 1];
         let parts = sample.into_raw_parts();
         assert_eq!(parts.0, bits);
-        assert_eq!(parts.1, size);
+        assert_eq!(parts.1, vsize);
         assert_eq!(parts.2, label);
     }
 
@@ -134,7 +146,7 @@ mod tests {
     fn into_bits() {
         let sample = Sample {
             bits: bitvec![0, 1, 0, 1, 0, 1],
-            size: 3,
+            vsize: 3,
             label: 0,
         };
         let bits = sample.iter_bits().map(|b| *b).collect::<Vec<bool>>();
@@ -145,7 +157,7 @@ mod tests {
     fn into_values() {
         let sample = Sample {
             bits: bitvec![0, 1, 0, 1, 0, 1],
-            size: 3,
+            vsize: 3,
             label: 0,
         };
         let bits = sample.iter_values().map(|b| b.load()).collect::<Vec<u8>>();
