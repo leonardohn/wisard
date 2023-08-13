@@ -26,13 +26,13 @@ impl LogThermometer {
     }
 }
 
-impl<L, S, O> SampleEncoder<L, S, O> for LogThermometer
+impl<L, T, O> SampleEncoder<L, T, O> for LogThermometer
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
-    fn encode_inplace(&self, sample: &mut Sample<L, S, O>) {
+    fn encode_inplace(&self, sample: &mut Sample<L, T, O>) {
         let max_bits = std::mem::size_of::<usize>() << 3;
 
         if sample.vsize() > max_bits {
@@ -48,7 +48,7 @@ where
 
         let resolution = self.resolution as usize;
         let out_size = (sample.len() / sample.vsize()) * resolution;
-        let mut bits = BitVec::<S, O>::with_capacity(out_size);
+        let mut bits = BitVec::<T, O>::with_capacity(out_size);
 
         for value in sample.iter_values() {
             let mut orig_value = 0usize;
@@ -87,14 +87,14 @@ impl LinearThermometer {
     }
 }
 
-impl<L, S, O> SampleEncoder<L, S, O> for LinearThermometer
+impl<L, T, O> SampleEncoder<L, T, O> for LinearThermometer
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
-    BitSlice<S, O>: BitField,
+    BitSlice<T, O>: BitField,
 {
-    fn encode_inplace(&self, sample: &mut Sample<L, S, O>) {
+    fn encode_inplace(&self, sample: &mut Sample<L, T, O>) {
         let max_bits = std::mem::size_of::<usize>() << 3;
 
         if sample.vsize() > max_bits {
@@ -106,7 +106,7 @@ where
 
         let resolution = self.resolution as usize;
         let out_size = (sample.len() / sample.vsize()) * resolution;
-        let mut bits = BitVec::<S, O>::with_capacity(out_size);
+        let mut bits = BitVec::<T, O>::with_capacity(out_size);
 
         for value in sample.iter_values() {
             let mut bit_value = 0usize;

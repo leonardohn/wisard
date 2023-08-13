@@ -60,11 +60,11 @@ where
     }
 
     /// Fits (trains) the discriminator with a given input sample.
-    pub fn fit<L, S, O>(&mut self, sample: &Sample<L, S, O>)
+    pub fn fit<L, T, O>(&mut self, sample: &Sample<L, T, O>)
     where
         L: Label,
+        T: BitStore,
         O: BitOrder,
-        S: BitStore,
     {
         sample
             .raw_bits()
@@ -78,11 +78,11 @@ where
     }
 
     /// Returns the discriminator score for a given input sample.
-    pub fn score<L, S, O>(&self, sample: &Sample<L, S, O>) -> usize
+    pub fn score<L, T, O>(&self, sample: &Sample<L, T, O>) -> usize
     where
         L: Label,
+        T: BitStore,
         O: BitOrder,
-        S: BitStore,
     {
         sample
             .raw_bits()

@@ -143,7 +143,7 @@ where
     {
         self.disc
             .keys()
-            .map(|label| (self.disc[label].score(sample), label.clone()))
+            .map(|label| (self.disc[label].score(sample), *label))
             .collect()
     }
 

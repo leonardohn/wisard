@@ -15,25 +15,25 @@ impl<T: Copy + Clone + Debug + Eq + PartialEq + Hash> Label for T {}
 
 /// Represents a labeled sample.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub struct Sample<L, S = usize, O = LocalBits>
+pub struct Sample<L, T = usize, O = LocalBits>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
-    bits: BitVec<S, O>,
+    bits: BitVec<T, O>,
     vsize: usize,
     label: L,
 }
 
-impl<L, S, O> Sample<L, S, O>
+impl<L, T, O> Sample<L, T, O>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
     /// Creates a [`Sample`](./struct.Sample.html) instance from its raw parts.
-    pub fn from_raw_parts(bits: BitVec<S, O>, vsize: usize, label: L) -> Self {
+    pub fn from_raw_parts(bits: BitVec<T, O>, vsize: usize, label: L) -> Self {
         assert!(
             bits.len() >= vsize,
             "There are not enough bits for `vsize` (bits: {}, vsize: {})",
@@ -50,18 +50,18 @@ where
     }
 
     /// Breaks a [`Sample`](./struct.Sample.html) instance into its raw parts.
-    pub fn into_raw_parts(self) -> (BitVec<S, O>, usize, L) {
+    pub fn into_raw_parts(self) -> (BitVec<T, O>, usize, L) {
         let Self { bits, vsize, label } = self;
         (bits, vsize, label)
     }
 
     /// Returns an iterator over the individual sample bits
-    pub fn iter_bits(&self) -> impl Iterator<Item = BitRef<'_, Const, S, O>> {
+    pub fn iter_bits(&self) -> impl Iterator<Item = BitRef<'_, Const, T, O>> {
         self.bits.iter()
     }
 
     /// Returns an iterator over the sample bit chunks.
-    pub fn iter_values(&self) -> impl Iterator<Item = &BitSlice<S, O>> {
+    pub fn iter_values(&self) -> impl Iterator<Item = &BitSlice<T, O>> {
         self.bits.chunks(self.vsize)
     }
 
@@ -76,17 +76,17 @@ where
     }
 
     /// Returns a slice over the raw sample bits.
-    pub fn raw_bits(&self) -> &BitSlice<S, O> {
+    pub fn raw_bits(&self) -> &BitSlice<T, O> {
         &self.bits
     }
 
     /// Returns a mutable slice over the raw sample bits.
-    pub fn raw_bits_mut(&mut self) -> &mut BitSlice<S, O> {
+    pub fn raw_bits_mut(&mut self) -> &mut BitSlice<T, O> {
         &mut self.bits
     }
 
     /// Replaces the raw sample bits with a given `BitVec`.
-    pub fn set_raw_bits(&mut self, bits: BitVec<S, O>) {
+    pub fn set_raw_bits(&mut self, bits: BitVec<T, O>) {
         self.bits = bits;
     }
 

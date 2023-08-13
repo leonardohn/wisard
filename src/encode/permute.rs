@@ -51,15 +51,15 @@ where
     }
 }
 
-impl<L, S, O, R> SampleEncoder<L, S, O> for Permute<R>
+impl<L, T, O, R> SampleEncoder<L, T, O> for Permute<R>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
     R: RngCore + SeedableRng,
-    S: BitStore,
     <R as SeedableRng>::Seed: Clone,
 {
-    fn encode_inplace(&self, sample: &mut Sample<L, S, O>) {
+    fn encode_inplace(&self, sample: &mut Sample<L, T, O>) {
         let mut rng = R::from_seed(self.seed.clone());
         let bits = sample.raw_bits_mut();
         let m = bits.len() - 1;

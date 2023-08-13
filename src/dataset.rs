@@ -13,30 +13,30 @@ pub enum DatasetError {
 }
 
 #[derive(Clone, Debug)]
-pub struct Dataset<L, S, O>
+pub struct Dataset<L, T, O>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
-    samples: Vec<Sample<L, S, O>>,
+    samples: Vec<Sample<L, T, O>>,
 }
 
-impl<L, S, O> Dataset<L, S, O>
+impl<L, T, O> Dataset<L, T, O>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn from_samples(samples: Vec<Sample<L, S, O>>) -> Self {
+    pub fn from_samples(samples: Vec<Sample<L, T, O>>) -> Self {
         Self { samples }
     }
 
-    pub fn push(&mut self, sample: Sample<L, S, O>) {
+    pub fn push(&mut self, sample: Sample<L, T, O>) {
         self.samples.push(sample);
     }
 
@@ -48,24 +48,24 @@ where
         self.samples.is_empty()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Sample<L, S, O>> {
+    pub fn iter(&self) -> impl Iterator<Item = &Sample<L, T, O>> {
         self.samples.as_slice().iter()
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Sample<L, S, O>> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Sample<L, T, O>> {
         self.samples.as_mut_slice().iter_mut()
     }
 
     pub fn labels(&self) -> HashSet<L> {
-        self.samples.iter().map(|s| s.label().clone()).collect()
+        self.samples.iter().map(|s| *s.label()).collect()
     }
 }
 
-impl<L, S, O> Default for Dataset<L, S, O>
+impl<L, T, O> Default for Dataset<L, T, O>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
     fn default() -> Self {
         Self {
@@ -74,24 +74,24 @@ where
     }
 }
 
-impl<L, S, O> Index<usize> for Dataset<L, S, O>
+impl<L, T, O> Index<usize> for Dataset<L, T, O>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
-    type Output = Sample<L, S, O>;
+    type Output = Sample<L, T, O>;
 
     fn index(&self, index: usize) -> &Self::Output {
         self.samples.index(index)
     }
 }
 
-impl<L, S, O> IndexMut<usize> for Dataset<L, S, O>
+impl<L, T, O> IndexMut<usize> for Dataset<L, T, O>
 where
     L: Label,
+    T: BitStore,
     O: BitOrder,
-    S: BitStore,
 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         self.samples.index_mut(index)
