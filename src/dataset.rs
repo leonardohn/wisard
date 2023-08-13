@@ -1,4 +1,5 @@
-use bitvec::{order::BitOrder, store::BitStore};
+use bitvec::prelude::*;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::collections::HashSet;
 use std::ops::{Index, IndexMut};
 
@@ -12,20 +13,23 @@ pub enum DatasetError {
     IO(std::io::Error),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Dataset<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
+    #[serde(bound = "")]
     samples: Vec<Sample<L, T, O>>,
 }
 
 impl<L, T, O> Dataset<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     pub fn new() -> Self {
@@ -64,7 +68,8 @@ where
 impl<L, T, O> Default for Dataset<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     fn default() -> Self {
@@ -77,7 +82,8 @@ where
 impl<L, T, O> Index<usize> for Dataset<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     type Output = Sample<L, T, O>;
@@ -90,7 +96,8 @@ where
 impl<L, T, O> IndexMut<usize> for Dataset<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {

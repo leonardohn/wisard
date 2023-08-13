@@ -1,4 +1,5 @@
-use bitvec::{order::BitOrder, store::BitStore};
+use bitvec::prelude::*;
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::sample::{Label, Sample};
 
@@ -12,7 +13,8 @@ pub use therm::*;
 pub trait SampleEncoder<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     /// Encodes the sample in-place.

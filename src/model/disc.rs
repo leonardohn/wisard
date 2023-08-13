@@ -1,4 +1,5 @@
-use bitvec::{order::BitOrder, store::BitStore, view::BitView};
+use bitvec::prelude::*;
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     filter::{BuildFilter, Filter},
@@ -63,7 +64,8 @@ where
     pub fn fit<L, T, O>(&mut self, sample: &Sample<L, T, O>)
     where
         L: Label,
-        T: BitStore,
+        T: BitStore + DeserializeOwned,
+        T::Mem: Serialize,
         O: BitOrder,
     {
         sample
@@ -81,7 +83,8 @@ where
     pub fn score<L, T, O>(&self, sample: &Sample<L, T, O>) -> usize
     where
         L: Label,
-        T: BitStore,
+        T: BitStore + DeserializeOwned,
+        T::Mem: Serialize,
         O: BitOrder,
     {
         sample

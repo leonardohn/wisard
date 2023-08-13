@@ -1,35 +1,48 @@
 use std::{fmt::Debug, hash::Hash};
 
-use bitvec::{
-    order::{BitOrder, LocalBits},
-    ptr::{BitRef, Const},
-    slice::BitSlice,
-    store::BitStore,
-    vec::BitVec,
-};
+use bitvec::{prelude::*, ptr::Const};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A trait for the sample labels.
-pub trait Label: Copy + Clone + Debug + Eq + PartialEq + Hash {}
+pub trait Label:
+    Copy + Clone + Debug + Eq + PartialEq + Hash + Serialize + DeserializeOwned
+{
+}
 
-impl<T: Copy + Clone + Debug + Eq + PartialEq + Hash> Label for T {}
+impl<
+        T: Copy
+            + Clone
+            + Debug
+            + Eq
+            + PartialEq
+            + Hash
+            + Serialize
+            + DeserializeOwned,
+    > Label for T
+{
+}
 
 /// Represents a labeled sample.
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Sample<L, T = usize, O = LocalBits>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
+    #[serde(bound = "")]
     bits: BitVec<T, O>,
     vsize: usize,
+    #[serde(bound = "")]
     label: L,
 }
 
 impl<L, T, O> Sample<L, T, O>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     /// Creates a [`Sample`](./struct.Sample.html) instance from its raw parts.

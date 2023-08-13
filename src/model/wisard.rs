@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use bitvec::{prelude::BitOrder, store::BitStore};
+use bitvec::prelude::*;
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     encode::{Permute, SampleEncoder},
@@ -127,19 +128,21 @@ where
     }
 
     /// Fits (trains) the model with a given input sample.
-    pub fn fit<S, O>(&mut self, sample: &Sample<L, S, O>)
+    pub fn fit<T, O>(&mut self, sample: &Sample<L, T, O>)
     where
+        T: BitStore + Clone + DeserializeOwned,
+        T::Mem: Serialize,
         O: BitOrder + Clone,
-        S: BitStore + Clone,
     {
         self.disc.get_mut(sample.label()).unwrap().fit(sample)
     }
 
     /// Returns the model scores for a given input sample.
-    pub fn scores<S, O>(&self, sample: &Sample<L, S, O>) -> Vec<(usize, L)>
+    pub fn scores<T, O>(&self, sample: &Sample<L, T, O>) -> Vec<(usize, L)>
     where
+        T: BitStore + Clone + DeserializeOwned,
+        T::Mem: Serialize,
         O: BitOrder + Clone,
-        S: BitStore + Clone,
     {
         self.disc
             .keys()
@@ -148,10 +151,11 @@ where
     }
 
     /// Returns the model prediction for a given input sample.
-    pub fn predict<S, O>(&self, sample: &Sample<L, S, O>) -> L
+    pub fn predict<T, O>(&self, sample: &Sample<L, T, O>) -> L
     where
+        T: BitStore + Clone + DeserializeOwned,
+        T::Mem: Serialize,
         O: BitOrder + Clone,
-        S: BitStore + Clone,
     {
         self.scores(sample)
             .into_iter()
@@ -164,6 +168,7 @@ where
 #[cfg(test)]
 mod tests {
     use bitvec::prelude::*;
+    use serde::Deserialize;
 
     use crate::sample::Sample;
 
@@ -171,16 +176,24 @@ mod tests {
 
     #[test]
     fn binary_wisard_hot_cold() {
+        #[derive(
+            Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize,
+        )]
+        enum Label {
+            Cold,
+            Hot,
+        }
+
         let input_size = 8;
         let addr_size = 2;
-        let labels = HashSet::from_iter(vec!["cold", "hot"].into_iter());
+        let labels = HashSet::from_iter([Label::Cold, Label::Hot].into_iter());
         let mut model = BinaryWisard::new(input_size, addr_size, labels);
 
         let samples = vec![
-            (bitvec![1, 1, 1, 0, 0, 0, 0, 0], "cold"),
-            (bitvec![1, 1, 1, 1, 0, 0, 0, 0], "cold"),
-            (bitvec![0, 0, 0, 0, 1, 1, 1, 1], "hot"),
-            (bitvec![0, 0, 0, 0, 0, 1, 1, 1], "hot"),
+            (bitvec![1, 1, 1, 0, 0, 0, 0, 0], Label::Cold),
+            (bitvec![1, 1, 1, 1, 0, 0, 0, 0], Label::Cold),
+            (bitvec![0, 0, 0, 0, 1, 1, 1, 1], Label::Hot),
+            (bitvec![0, 0, 0, 0, 0, 1, 1, 1], Label::Hot),
         ];
 
         let encoded_samples = samples

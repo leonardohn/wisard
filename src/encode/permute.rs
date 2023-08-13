@@ -1,6 +1,7 @@
-use bitvec::{order::BitOrder, store::BitStore};
+use bitvec::prelude::*;
 use rand::{Rng, RngCore, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::encode::SampleEncoder;
 use crate::sample::{Label, Sample};
@@ -54,7 +55,8 @@ where
 impl<L, T, O, R> SampleEncoder<L, T, O> for Permute<R>
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
     R: RngCore + SeedableRng,
     <R as SeedableRng>::Seed: Clone,

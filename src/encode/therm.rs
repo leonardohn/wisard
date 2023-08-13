@@ -2,6 +2,7 @@ use bitvec::{
     field::BitField, order::BitOrder, slice::BitSlice, store::BitStore,
     vec::BitVec, view::BitView,
 };
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::encode::SampleEncoder;
 use crate::sample::{Label, Sample};
@@ -29,7 +30,8 @@ impl LogThermometer {
 impl<L, T, O> SampleEncoder<L, T, O> for LogThermometer
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
 {
     fn encode_inplace(&self, sample: &mut Sample<L, T, O>) {
@@ -90,7 +92,8 @@ impl LinearThermometer {
 impl<L, T, O> SampleEncoder<L, T, O> for LinearThermometer
 where
     L: Label,
-    T: BitStore,
+    T: BitStore + DeserializeOwned,
+    T::Mem: Serialize,
     O: BitOrder,
     BitSlice<T, O>: BitField,
 {
