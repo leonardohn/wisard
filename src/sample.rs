@@ -47,18 +47,6 @@ where
 {
     /// Creates a [`Sample`](./struct.Sample.html) instance from its raw parts.
     pub fn from_raw_parts(bits: BitVec<T, O>, vsize: usize, label: L) -> Self {
-        assert!(
-            bits.len() >= vsize,
-            "There are not enough bits for `vsize` (bits: {}, vsize: {})",
-            bits.len(),
-            vsize,
-        );
-        assert!(
-            bits.len() % vsize == 0,
-            "The bits are not divisible by `vsize` (bits: {}, vsize: {})",
-            bits.len(),
-            vsize,
-        );
         Self { bits, vsize, label }
     }
 
@@ -110,18 +98,6 @@ where
 
     /// Updates the value size (number of bits for each element in the sample).
     pub fn set_vsize(&mut self, vsize: usize) {
-        assert!(
-            self.len() >= vsize,
-            "There are not enough bits for `vsize` (bits: {}, vsize: {})",
-            self.len(),
-            vsize,
-        );
-        assert!(
-            self.len() % vsize == 0,
-            "The bits are not divisible by `vsize` (bits: {}, vsize: {})",
-            self.len(),
-            vsize,
-        );
         self.vsize = vsize;
     }
 
