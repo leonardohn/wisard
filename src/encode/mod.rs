@@ -4,9 +4,11 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::sample::{Label, Sample};
 
 mod permute;
+mod slice;
 mod therm;
 
 pub use permute::*;
+pub use slice::*;
 pub use therm::*;
 
 /// A trait for sample encoders, i.e. transformations over the sample bits.
