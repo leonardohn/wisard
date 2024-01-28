@@ -1,6 +1,6 @@
 [package]
 name = "wisard"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Leonardo Neumann <leonardo@neumann.dev.br>"]
 description = "WiSARD nets implementation in Rust"
 edition = "2021"
